@@ -49,7 +49,7 @@ public class JwtHandshakeHandler extends DefaultHandshakeHandler {
               .build();
 
       var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + claims.role().name()));
-      return new UsernamePasswordAuthenticationToken(claims.id(), null, authorities);
+      return new UsernamePasswordAuthenticationToken(claims, null, authorities);
 
     } catch (Exception e) {
       return null;

@@ -10,6 +10,6 @@ import org.springframework.security.core.AuthenticatedPrincipal;
 public record AuthClaims(String id, String email, Role role) implements AuthenticatedPrincipal {
   @Override
   public String getName() {
-    return id;
+    return email;
   }
 }

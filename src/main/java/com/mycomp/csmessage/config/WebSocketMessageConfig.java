@@ -18,6 +18,7 @@ public class WebSocketMessageConfig implements WebSocketMessageBrokerConfigurer 
 
   private final JwtHandshakeHandler jwtHandshakeHandler;
   private final JwtValidationInterceptor jwtValidationInterceptor;
+  private final StompRelayConfig stompRelayConfig;
 
   @Override
   public void registerStompEndpoints(StompEndpointRegistry registry) {
@@ -31,7 +32,15 @@ public class WebSocketMessageConfig implements WebSocketMessageBrokerConfigurer 
   @Override
   public void configureMessageBroker(MessageBrokerRegistry registry) {
     registry.setApplicationDestinationPrefixes("/app");
-    registry.enableSimpleBroker("/topic", "/queue");
+    registry
+        .enableStompBrokerRelay("/topic", "/queue")
+        .setRelayHost(stompRelayConfig.getRelayHost())
+        .setRelayPort(stompRelayConfig.getRelayPort())
+        .setVirtualHost(stompRelayConfig.getVirtualHost())
+        .setClientLogin(stompRelayConfig.getLogin())
+        .setClientPasscode(stompRelayConfig.getPasscode())
+        .setSystemLogin(stompRelayConfig.getSystemLogin())
+        .setSystemPasscode(stompRelayConfig.getSystemPasscode());
     registry.setUserDestinationPrefix("/user");
   }
 }
