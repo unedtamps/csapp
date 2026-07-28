@@ -3,6 +3,9 @@ package com.mycomp.csmessage.chats.controller;
 import com.mycomp.csmessage.chats.dto.ChatMessageDto;
 import com.mycomp.csmessage.chats.dto.MessageSentEvent;
 
+import io.github.springwolf.core.asyncapi.annotations.AsyncOperation;
+import io.github.springwolf.core.asyncapi.annotations.AsyncPublisher;
+
 import java.security.Principal;
 import java.time.Instant;
 
@@ -22,6 +25,12 @@ public class ChatController {
   private final ApplicationEventPublisher eventPublisher;
 
   @MessageMapping("/chat.private")
+  @AsyncPublisher(
+      operation =
+          @AsyncOperation(
+              channelName = "/user/{username}/queue/messages",
+              description = "Private message delivered to a specific user",
+              payloadType = ChatMessageDto.class))
   public void sendPrivateMessage(@Payload ChatMessageDto message, Principal principal) {
 
     String userId = principal.getName();

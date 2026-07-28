@@ -29,6 +29,7 @@
   </scm>
   <properties>
     <java.version>25</java.version>
+    <springwolf.version>2.5.0</springwolf.version>
   </properties>
   <dependencies>
     <dependency>
@@ -123,12 +124,12 @@
     <dependency>
       <groupId>io.github.springwolf</groupId>
       <artifactId>springwolf-stomp</artifactId>
-      <version>2.4.0</version>
+      <version>${springwolf.version}</version>
     </dependency>
     <dependency>
       <groupId>io.github.springwolf</groupId>
       <artifactId>springwolf-ui</artifactId>
-      <version>2.5.0</version>
+      <version>${springwolf.version}</version>
     </dependency>
   </dependencies>
 
