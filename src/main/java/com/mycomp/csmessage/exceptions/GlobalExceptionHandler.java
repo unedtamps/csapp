@@ -39,7 +39,7 @@ public class GlobalExceptionHandler {
       MissingRequestHeaderException ex, HttpServletRequest req) {
 
     return buildError(
-        HttpStatus.UNAUTHORIZED, "Missing required header: " + ex.getHeaderName(), req);
+        HttpStatus.BAD_REQUEST, "Missing required header: " + ex.getHeaderName(), req);
   }
 
   @ExceptionHandler(HttpRequestMethodNotSupportedException.class)

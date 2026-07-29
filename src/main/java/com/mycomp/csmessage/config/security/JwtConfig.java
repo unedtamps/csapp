@@ -1,4 +1,4 @@
-package com.mycomp.csmessage.config;
+package com.mycomp.csmessage.config.security;
 
 import lombok.Data;
 

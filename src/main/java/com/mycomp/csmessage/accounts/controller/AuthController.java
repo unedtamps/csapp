@@ -2,6 +2,8 @@ package com.mycomp.csmessage.accounts.controller;
 
 import com.mycomp.csmessage.accounts.dto.LoginRequest;
 import com.mycomp.csmessage.accounts.dto.LoginResponse;
+import com.mycomp.csmessage.accounts.dto.LogoutRequest;
+import com.mycomp.csmessage.accounts.dto.RefreshTokenRequest;
 import com.mycomp.csmessage.accounts.dto.RegisterRequest;
 import com.mycomp.csmessage.accounts.models.User;
 import com.mycomp.csmessage.accounts.service.AuthService;
@@ -13,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -37,12 +38,16 @@ public class AuthController {
   }
 
   @PostMapping("/refresh")
-  public ResponseEntity<LoginResponse> refresh(
-      @RequestHeader("Authorization") String authorizationHeader) {
+  public ResponseEntity<LoginResponse> refresh(@Valid @RequestBody RefreshTokenRequest body) {
 
-    String refreshToken = authorizationHeader.replace("Bearer ", "");
-
-    LoginResponse response = authService.refresh(refreshToken);
+    LoginResponse response = authService.refresh(body.refreshToken());
     return ResponseEntity.ok(response);
+  }
+
+  @PostMapping("/logout")
+  public ResponseEntity<Void> logout(@Valid @RequestBody LogoutRequest body) {
+
+    authService.logout(body.refreshToken());
+    return ResponseEntity.noContent().build();
   }
 }

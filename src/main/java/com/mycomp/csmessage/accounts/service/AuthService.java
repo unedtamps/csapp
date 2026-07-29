@@ -3,10 +3,17 @@ package com.mycomp.csmessage.accounts.service;
 import com.mycomp.csmessage.accounts.dto.LoginResponse;
 import com.mycomp.csmessage.accounts.dto.RegisterRequest;
 import com.mycomp.csmessage.accounts.middleware.JwtUtil;
+import com.mycomp.csmessage.accounts.models.RefreshToken;
 import com.mycomp.csmessage.accounts.models.Role;
 import com.mycomp.csmessage.accounts.models.User;
+import com.mycomp.csmessage.accounts.repository.RefreshTokenRepository;
 import com.mycomp.csmessage.accounts.repository.UsersRepository;
+import com.mycomp.csmessage.config.security.JwtConfig;
 import com.mycomp.csmessage.exceptions.BaseException;
+
+import jakarta.transaction.Transactional;
+
+import java.time.Instant;
 
 import lombok.RequiredArgsConstructor;
 
@@ -21,7 +28,10 @@ public class AuthService {
   private final UsersRepository userRepository;
   private final PasswordEncoder passwordEncoder;
   private final JwtUtil jwtUtil;
+  private final RefreshTokenRepository refreshTokenRepository;
+  private final JwtConfig jwtConfig;
 
+  @Transactional
   public LoginResponse login(String email, String password) {
     User user = userRepository.findByEmail(email);
     if (user == null) {
@@ -34,6 +44,8 @@ public class AuthService {
 
     String accessToken = jwtUtil.generateAccessToken(user);
     String refreshToken = jwtUtil.generateRefreshToken(user);
+
+    saveRefreshToken(user, refreshToken);
 
     return LoginResponse.builder().accessToken(accessToken).refreshToken(refreshToken).build();
   }
@@ -56,17 +68,44 @@ public class AuthService {
             .build());
   }
 
+  @Transactional
   public LoginResponse refresh(String refreshToken) {
-    String userId = jwtUtil.extractUserId(refreshToken);
+    if (jwtUtil.isTokenExpired(refreshToken)) {
+      throw new BaseException(HttpStatus.UNAUTHORIZED, "Refresh token expired");
+    }
 
+    String ulid = jwtUtil.extractJti(refreshToken);
+    int deleted = refreshTokenRepository.deleteByIdReturningCount(ulid);
+    if (deleted == 0) {
+      throw new BaseException(HttpStatus.UNAUTHORIZED, "Refresh token already used or invalid");
+    }
+
+    String userId = jwtUtil.extractUserId(refreshToken);
     User user =
         userRepository
             .findById(userId)
             .orElseThrow(() -> new BaseException(HttpStatus.UNAUTHORIZED, "User not found"));
 
+    String newAccessToken = jwtUtil.generateAccessToken(user);
+    String newRefreshToken = jwtUtil.generateRefreshToken(user);
+
+    saveRefreshToken(user, newRefreshToken);
+
     return LoginResponse.builder()
-        .accessToken(jwtUtil.generateAccessToken(user))
-        .refreshToken(refreshToken)
+        .accessToken(newAccessToken)
+        .refreshToken(newRefreshToken)
         .build();
+  }
+
+  @Transactional
+  public void logout(String refreshToken) {
+    String ulid = jwtUtil.extractJti(refreshToken);
+    refreshTokenRepository.deleteByIdReturningCount(ulid);
+  }
+
+  private void saveRefreshToken(User user, String token) {
+    String id = jwtUtil.extractJti(token);
+    Instant expiresAt = Instant.now().plusMillis(jwtConfig.getRefreshTokenExpiration());
+    refreshTokenRepository.save(new RefreshToken(id, user, expiresAt, null));
   }
 }

@@ -1,4 +1,4 @@
-package com.mycomp.csmessage.config;
+package com.mycomp.csmessage.config.security;
 
 import com.mycomp.csmessage.accounts.middleware.JwtAuthFilter;
 import com.mycomp.csmessage.exceptions.SecurityErrorHandler;

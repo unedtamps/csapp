@@ -3,7 +3,7 @@ package com.mycomp.csmessage.seeder;
 import com.mycomp.csmessage.accounts.models.Role;
 import com.mycomp.csmessage.accounts.models.User;
 import com.mycomp.csmessage.accounts.repository.UsersRepository;
-import com.mycomp.csmessage.config.AdminConfig;
+import com.mycomp.csmessage.config.admin.AdminConfig;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

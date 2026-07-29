@@ -1,8 +1,9 @@
 package com.mycomp.csmessage.accounts.middleware;
 
+import com.github.f4b6a3.ulid.UlidCreator;
 import com.mycomp.csmessage.accounts.models.Role;
 import com.mycomp.csmessage.accounts.models.User;
-import com.mycomp.csmessage.config.JwtConfig;
+import com.mycomp.csmessage.config.security.JwtConfig;
 import com.mycomp.csmessage.exceptions.BaseException;
 
 import io.jsonwebtoken.Claims;
@@ -43,6 +44,7 @@ public class JwtUtil {
 
   public String generateRefreshToken(User user) {
     return Jwts.builder()
+        .id(UlidCreator.getUlid().toString())
         .subject(user.getId())
         .issuedAt(new Date())
         .expiration(new Date(System.currentTimeMillis() + jwtConfig.getRefreshTokenExpiration()))
@@ -60,6 +62,10 @@ public class JwtUtil {
 
   public Role extractRole(String token) {
     return Role.valueOf(getClaims(token).get("role", String.class));
+  }
+
+  public String extractJti(String token) {
+    return getClaims(token).getId();
   }
 
   public boolean isTokenExpired(String token) {

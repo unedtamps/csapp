@@ -1,4 +1,4 @@
-package com.mycomp.csmessage.config;
+package com.mycomp.csmessage.config.admin;
 
 import com.mycomp.csmessage.accounts.models.Role;
 

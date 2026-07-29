@@ -1,4 +1,4 @@
-package com.mycomp.csmessage.config;
+package com.mycomp.csmessage.config.websocket;
 
 import com.mycomp.csmessage.chats.middleware.JwtHandshakeHandler;
 import com.mycomp.csmessage.chats.middleware.JwtValidationInterceptor;
