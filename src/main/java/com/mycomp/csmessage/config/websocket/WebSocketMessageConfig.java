@@ -1,11 +1,11 @@
 package com.mycomp.csmessage.config.websocket;
 
-import com.mycomp.csmessage.chats.middleware.JwtHandshakeHandler;
-import com.mycomp.csmessage.chats.middleware.JwtValidationInterceptor;
+import com.mycomp.csmessage.chats.middleware.StompAuthInterceptor;
 
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
@@ -16,17 +16,14 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @RequiredArgsConstructor
 public class WebSocketMessageConfig implements WebSocketMessageBrokerConfigurer {
 
-  private final JwtHandshakeHandler jwtHandshakeHandler;
-  private final JwtValidationInterceptor jwtValidationInterceptor;
   private final StompRelayConfig stompRelayConfig;
+  private final StompAuthInterceptor stompAuthInterceptor;
 
   @Override
   public void registerStompEndpoints(StompEndpointRegistry registry) {
     registry
         .addEndpoint("/ws")
-        .setAllowedOriginPatterns("*")
-        .addInterceptors(jwtValidationInterceptor)
-        .setHandshakeHandler(jwtHandshakeHandler);
+        .setAllowedOriginPatterns("*");
   }
 
   @Override
@@ -41,6 +38,10 @@ public class WebSocketMessageConfig implements WebSocketMessageBrokerConfigurer 
         .setClientPasscode(stompRelayConfig.getPasscode())
         .setSystemLogin(stompRelayConfig.getSystemLogin())
         .setSystemPasscode(stompRelayConfig.getSystemPasscode());
-    registry.setUserDestinationPrefix("/user");
+  }
+
+  @Override
+  public void configureClientInboundChannel(ChannelRegistration registration) {
+    registration.interceptors(stompAuthInterceptor);
   }
 }

@@ -28,16 +28,16 @@ public class ChatController {
   @AsyncPublisher(
       operation =
           @AsyncOperation(
-              channelName = "/user/{username}/queue/messages",
-              description = "Private message delivered to a specific user",
+              channelName = "/queue/messages.{recipientEmail}",
+              description = "Private message delivered to a specific user queue",
               payloadType = ChatMessageDto.class))
   public void sendPrivateMessage(@Payload ChatMessageDto message, Principal principal) {
 
-    String userId = principal.getName();
-    message.setSenderId(userId);
-    messagingTemplate.convertAndSendToUser(message.getRecipientId(), "/queue/messages", message);
+    String senderEmail = principal.getName();
+    message.setSenderId(senderEmail);
+    messagingTemplate.convertAndSend("/queue/messages." + message.getRecipientId(), message);
     eventPublisher.publishEvent(
         new MessageSentEvent(
-            userId, message.getRecipientId(), message.getMessage(), Instant.now()));
+            senderEmail, message.getRecipientId(), message.getMessage(), Instant.now()));
   }
 }
