@@ -4,6 +4,12 @@ import com.mycomp.csmessage.accounts.dto.AuthClaims;
 import com.mycomp.csmessage.accounts.middleware.JwtUtil;
 import com.mycomp.csmessage.exceptions.BaseException;
 
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.StatusCode;
+import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.Scope;
+
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
@@ -37,34 +43,50 @@ public class StompAuthInterceptor implements ChannelInterceptor {
     StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
 
     if (StompCommand.CONNECT.equals(accessor.getCommand())) {
-      String authHeader = accessor.getFirstNativeHeader("Authorization");
+      Tracer tracer = GlobalOpenTelemetry.getTracer(StompAuthInterceptor.class.getName());
+      Span span = tracer.spanBuilder("STOMP CONNECT auth").startSpan();
+      try (Scope ignored = span.makeCurrent()) {
+        String authHeader = accessor.getFirstNativeHeader("Authorization");
 
-      if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-        throw new BaseException(HttpStatus.UNAUTHORIZED, "Missing or invalid Authorization header");
-      }
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+          throw new BaseException(
+              HttpStatus.UNAUTHORIZED, "Missing or invalid Authorization header");
+        }
 
-      String token = authHeader.substring(7);
+        String token = authHeader.substring(7);
 
-      if (jwtUtil.isTokenExpired(token)) {
-        throw new BaseException(HttpStatus.UNAUTHORIZED, "Token expired");
-      }
+        if (jwtUtil.isTokenExpired(token)) {
+          throw new BaseException(HttpStatus.UNAUTHORIZED, "Token expired");
+        }
 
-      AuthClaims claims =
-          AuthClaims.builder()
-              .id(jwtUtil.extractUserId(token))
-              .email(jwtUtil.extractEmail(token))
-              .role(jwtUtil.extractRole(token))
-              .build();
+        AuthClaims claims =
+            AuthClaims.builder()
+                .id(jwtUtil.extractUserId(token))
+                .email(jwtUtil.extractEmail(token))
+                .role(jwtUtil.extractRole(token))
+                .build();
 
-      var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + claims.role().name()));
-      Principal principal = new UsernamePasswordAuthenticationToken(claims, null, authorities);
-      accessor.setUser(principal);
-      message = MessageBuilder.createMessage(message.getPayload(), accessor.getMessageHeaders());
+        var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + claims.role().name()));
+        Principal principal = new UsernamePasswordAuthenticationToken(claims, null, authorities);
+        accessor.setUser(principal);
+        message = MessageBuilder.createMessage(message.getPayload(), accessor.getMessageHeaders());
 
-      String sessionId = accessor.getSessionId();
-      if (sessionId != null) {
-        sessionUsers.put(sessionId, principal);
-        log.info("Session CONNECT {} authenticated as {}", sessionId, principal.getName());
+        String sessionId = accessor.getSessionId();
+        if (sessionId != null) {
+          sessionUsers.put(sessionId, principal);
+          log.info("Session CONNECT {} authenticated as {}", sessionId, principal.getName());
+          span.setAttribute("session.id", sessionId);
+          span.setAttribute("user.email", claims.email());
+        }
+      } catch (BaseException e) {
+        span.setAttribute("auth.error", e.getMessage());
+        throw e;
+      } catch (Exception e) {
+        span.recordException(e);
+        span.setStatus(StatusCode.ERROR);
+        throw e;
+      } finally {
+        span.end();
       }
 
     } else if (StompCommand.DISCONNECT.equals(accessor.getCommand())) {

@@ -5,6 +5,8 @@ import com.mycomp.csmessage.chats.models.MessageHistory;
 import com.mycomp.csmessage.chats.repository.MessageHistoryRepository;
 import com.mycomp.csmessage.chats.util.ConversationUtils;
 
+import io.opentelemetry.instrumentation.annotations.WithSpan;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -21,6 +23,7 @@ public class MessageHistoryListener {
 
   @Async
   @EventListener
+  @WithSpan
   public void onMessageSent(MessageSentEvent event) {
     MessageHistory history =
         MessageHistory.builder()

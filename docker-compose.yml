@@ -52,6 +52,24 @@ services:
       - "8081:8081"
     depends_on:
       - mongodb
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    restart: unless-stopped
+    ports:
+      - "4317:4317" # OTLP gRPC
+      - "4318:4318" # OTLP HTTP
+    volumes:
+      - ./otel-collector-config.yml:/etc/otelcol-contrib/config.yaml
+    depends_on:
+      - jaeger
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger-cs
+    restart: unless-stopped
+    ports:
+      - "16686:16686" # Jaeger UI
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
 
 volumes:
   postgres_data_cs:

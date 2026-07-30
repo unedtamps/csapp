@@ -131,6 +131,11 @@
       <artifactId>springwolf-ui</artifactId>
       <version>${springwolf.version}</version>
     </dependency>
+    <dependency>
+      <groupId>io.opentelemetry.instrumentation</groupId>
+      <artifactId>opentelemetry-instrumentation-annotations</artifactId>
+      <version>2.14.0</version>
+    </dependency>
   </dependencies>
 
   <build>

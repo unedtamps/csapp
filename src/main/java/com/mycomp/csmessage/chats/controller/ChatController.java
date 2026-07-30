@@ -5,6 +5,7 @@ import com.mycomp.csmessage.chats.dto.MessageSentEvent;
 
 import io.github.springwolf.core.asyncapi.annotations.AsyncOperation;
 import io.github.springwolf.core.asyncapi.annotations.AsyncPublisher;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
 
 import java.security.Principal;
 import java.time.Instant;
@@ -31,6 +32,7 @@ public class ChatController {
               channelName = "/queue/messages.{recipientEmail}",
               description = "Private message delivered to a specific user queue",
               payloadType = ChatMessageDto.class))
+  @WithSpan
   public void sendPrivateMessage(@Payload ChatMessageDto message, Principal principal) {
 
     String senderEmail = principal.getName();
