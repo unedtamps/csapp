@@ -7,10 +7,14 @@ receivers:
         endpoint: 0.0.0.0:4318
 
 exporters:
-  otlp:
-    endpoint: jaeger:4317
-    tls:
-      insecure: true
+  # otlp:
+  #   endpoint: https://otlp-gateway-prod-ap-southeast-2.grafana.net/otlp
+  #   headers:
+  #     Authorization: "Basic ${GRAFANA_AUTH}"
+  otlphttp: # ← nama diganti
+    endpoint: https://otlp-gateway-prod-ap-southeast-2.grafana.net/otlp
+    headers:
+      Authorization: "Basic ${GRAFANA_AUTH}"
   debug:
     verbosity: detailed
 
@@ -18,4 +22,10 @@ service:
   pipelines:
     traces:
       receivers: [otlp]
-      exporters: [otlp, debug]
+      exporters: [otlphttp, debug]
+    metrics:
+      receivers: [otlp]
+      exporters: [otlphttp, debug]
+    logs:
+      receivers: [otlp]
+      exporters: [otlphttp, debug]
