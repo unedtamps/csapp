@@ -36,4 +36,5 @@ build/
 ### VS Code ###
 .vscode/
 
+# Local env fallback (secrets now live in Infisical Cloud)
 .env
