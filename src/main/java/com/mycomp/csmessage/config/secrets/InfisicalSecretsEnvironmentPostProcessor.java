@@ -27,6 +27,11 @@ public class InfisicalSecretsEnvironmentPostProcessor implements EnvironmentPost
   @Override
   public void postProcessEnvironment(
       ConfigurableEnvironment environment, SpringApplication application) {
+    if (isTest(environment)) {
+      log.info("Skipping Infisical bootstrap in test profile.");
+      return;
+    }
+
     String clientId = environment.getProperty(CLIENT_ID_ENV);
     String clientSecret = environment.getProperty(CLIENT_SECRET_ENV);
     String projectId = environment.getProperty(PROJECT_ID_ENV);
@@ -89,5 +94,15 @@ public class InfisicalSecretsEnvironmentPostProcessor implements EnvironmentPost
     }
     String prop = environment.getProperty("spring.profiles.active");
     return prop != null && (prop.contains("prod") || prop.contains("production"));
+  }
+
+  private boolean isTest(ConfigurableEnvironment environment) {
+    for (String profile : environment.getActiveProfiles()) {
+      if ("test".equalsIgnoreCase(profile) || "integration-test".equalsIgnoreCase(profile)) {
+        return true;
+      }
+    }
+    String prop = environment.getProperty("spring.profiles.active");
+    return prop != null && (prop.contains("test"));
   }
 }
