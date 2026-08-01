@@ -7,6 +7,7 @@ import com.mycomp.csmessage.config.security.JwtConfig;
 import com.mycomp.csmessage.exceptions.BaseException;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -69,12 +70,18 @@ public class JwtUtil {
   }
 
   public boolean isTokenExpired(String token) {
-    return getClaims(token).getExpiration().before(new Date());
+    try {
+      return getClaims(token).getExpiration().before(new Date());
+    } catch (ExpiredJwtException e) {
+      return true;
+    }
   }
 
   public Claims getClaims(String token) {
     try {
       return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
+    } catch (ExpiredJwtException e) {
+      throw e;
     } catch (JwtException e) {
       throw new BaseException(HttpStatus.UNAUTHORIZED, "Invalid token");
     }
