@@ -22,7 +22,7 @@ public class InfisicalSecretsEnvironmentPostProcessor implements EnvironmentPost
   private static final String CLIENT_ID_ENV = "INFISICAL_CLIENT_ID";
   private static final String CLIENT_SECRET_ENV = "INFISICAL_CLIENT_SECRET";
   private static final String PROJECT_ID_ENV = "INFISICAL_PROJECT_ID";
-  private static final String ENV_SLUG_ENV = "INFISICAL_ENVIRONMENT";
+  private static final String ENV_SLUG_PROPERTY = "app.infisical.environment";
 
   @Override
   public void postProcessEnvironment(
@@ -50,7 +50,7 @@ public class InfisicalSecretsEnvironmentPostProcessor implements EnvironmentPost
       return;
     }
 
-    String envSlug = environment.getProperty(ENV_SLUG_ENV, "dev");
+    String envSlug = environment.getProperty(ENV_SLUG_PROPERTY, "dev");
 
     Map<String, Object> secrets;
     try {

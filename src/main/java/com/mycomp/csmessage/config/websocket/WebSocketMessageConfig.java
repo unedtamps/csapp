@@ -1,6 +1,7 @@
 package com.mycomp.csmessage.config.websocket;
 
 import com.mycomp.csmessage.chats.middleware.StompAuthInterceptor;
+import com.mycomp.csmessage.config.security.CorsConfig;
 
 import lombok.RequiredArgsConstructor;
 
@@ -18,12 +19,13 @@ public class WebSocketMessageConfig implements WebSocketMessageBrokerConfigurer 
 
   private final StompRelayConfig stompRelayConfig;
   private final StompAuthInterceptor stompAuthInterceptor;
+  private final CorsConfig corsConfig;
 
   @Override
   public void registerStompEndpoints(StompEndpointRegistry registry) {
     registry
         .addEndpoint("/ws")
-        .setAllowedOriginPatterns("*");
+        .setAllowedOriginPatterns(corsConfig.getAllowedOriginPatterns().toArray(String[]::new));
   }
 
   @Override

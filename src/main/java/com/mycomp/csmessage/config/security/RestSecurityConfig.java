@@ -1,9 +1,9 @@
 package com.mycomp.csmessage.config.security;
 
-import java.util.List;
-
 import com.mycomp.csmessage.accounts.middleware.JwtAuthFilter;
 import com.mycomp.csmessage.exceptions.SecurityErrorHandler;
+
+import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 
@@ -25,6 +25,7 @@ public class RestSecurityConfig {
 
   private final JwtAuthFilter jwtAuthFilter;
   private final SecurityErrorHandler securityErrorHandler;
+  private final CorsConfig corsConfig;
 
   @Bean
   public PasswordEncoder passwordEncoder() {
@@ -35,7 +36,7 @@ public class RestSecurityConfig {
   public CorsConfigurationSource corsConfigurationSource() {
     var source = new UrlBasedCorsConfigurationSource();
     var config = new CorsConfiguration();
-    config.setAllowedOrigins(List.of("http://localhost:5173"));
+    config.setAllowedOriginPatterns(corsConfig.getAllowedOriginPatterns());
     config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
     config.setAllowedHeaders(List.of("*"));
     config.setAllowCredentials(true);
@@ -51,11 +52,16 @@ public class RestSecurityConfig {
         .formLogin(form -> form.disable())
         .sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        .headers(headers -> headers
-            .contentSecurityPolicy(csp -> csp
-                .policyDirectives("default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'"))
-            .frameOptions(frame -> frame.deny())
-            .xssProtection(xss -> xss.disable()))
+        .headers(
+            headers ->
+                headers
+                    .contentSecurityPolicy(
+                        csp ->
+                            csp.policyDirectives(
+                                "default-src 'self'; script-src 'self'; style-src 'self'"
+                                    + " 'unsafe-inline'"))
+                    .frameOptions(frame -> frame.deny())
+                    .xssProtection(xss -> xss.disable()))
         .authorizeHttpRequests(
             auth ->
                 auth.requestMatchers("/auth/**")
