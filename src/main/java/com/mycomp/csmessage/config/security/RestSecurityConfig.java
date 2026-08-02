@@ -74,6 +74,8 @@ public class RestSecurityConfig {
                     .permitAll()
                     .requestMatchers("/ws/**", "/wss/**")
                     .permitAll()
+                    .requestMatchers("/actuator/health/**")
+                    .permitAll()
                     .requestMatchers("/admin/**")
                     .hasRole("ADMIN")
                     .anyRequest()

@@ -88,12 +88,15 @@ public class InfisicalSecretsEnvironmentPostProcessor implements EnvironmentPost
 
   private boolean isProduction(ConfigurableEnvironment environment) {
     for (String profile : environment.getActiveProfiles()) {
-      if ("prod".equalsIgnoreCase(profile) || "production".equalsIgnoreCase(profile)) {
+      if ("prod".equalsIgnoreCase(profile)
+          || "production".equalsIgnoreCase(profile)
+          || "staging".equalsIgnoreCase(profile)) {
         return true;
       }
     }
     String prop = environment.getProperty("spring.profiles.active");
-    return prop != null && (prop.contains("prod") || prop.contains("production"));
+    return prop != null
+        && (prop.contains("prod") || prop.contains("production") || prop.contains("staging"));
   }
 
   private boolean isTest(ConfigurableEnvironment environment) {
