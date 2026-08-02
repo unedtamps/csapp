@@ -72,6 +72,33 @@ services:
       - "16686:16686" # Jaeger UI
     environment:
       COLLECTOR_OTLP_ENABLED: "true"
+  csmessage:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: csmessage:dev
+    container_name: csmessage-app-cs
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: staging
+      INFISICAL_CLIENT_ID: "${INFISICAL_CLIENT_ID:-}"
+      INFISICAL_CLIENT_SECRET: "${INFISICAL_CLIENT_SECRET:-}"
+      INFISICAL_PROJECT_ID: "${INFISICAL_PROJECT_ID:-}"
+      JAVA_TOOL_OPTIONS: -javaagent:/app/otel/opentelemetry-javaagent.jar
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4317"
+      OTEL_METRICS_EXPORTER: "otlp"
+      OTEL_LOGS_EXPORTER: "otlp"
+      OTEL_TRACES_EXPORTER: "otlp"
+      OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+    volumes:
+      - ./opentelemetry-javaagent.jar:/app/otel/opentelemetry-javaagent.jar:ro
+    depends_on:
+      - postgres
+      - mongodb
+      - rabbitmq
+      - otel-collector
 
 volumes:
   postgres_data_cs:
