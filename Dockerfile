@@ -7,7 +7,7 @@ COPY src src
 RUN mvn -B -q -DskipTests package
 RUN mkdir -p extracted \
     && java -Djarmode=tools -jar target/*.jar extract --destination /workspace/extracted \
-    && mv /workspace/extracted/csmessage-0.0.1-SNAPSHOT.jar /workspace/app.jar \
+    && mv /workspace/extracted/csapp-0.0.1-SNAPSHOT.jar /workspace/app.jar \
     && mv /workspace/extracted/lib /workspace/lib \
     && rm -rf /workspace/extracted
 

@@ -72,12 +72,12 @@ services:
       - "16686:16686" # Jaeger UI
     environment:
       COLLECTOR_OTLP_ENABLED: "true"
-  csmessage:
+  csapp:
     build:
       context: .
       dockerfile: Dockerfile
-    image: csmessage:dev
-    container_name: csmessage-app-cs
+    image: csapp:dev
+    container_name: csapp-app-cs
     restart: unless-stopped
     ports:
       - "8080:8080"
