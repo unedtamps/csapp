@@ -92,6 +92,10 @@ services:
       OTEL_LOGS_EXPORTER: "otlp"
       OTEL_TRACES_EXPORTER: "otlp"
       OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+      OTEL_RESOURCE_ATTRIBUTES: "service.name=csapp,service.namespace=my-application-group,deployment.environment=development"
+      OTEL_TRACES_SAMPLER: "parentbased_traceidratio"
+      OTEL_TRACES_SAMPLER_ARG: "1.0"
+      OTEL_JAVAAPP_ENABLED: true
     volumes:
       - ./opentelemetry-javaagent.jar:/app/otel/opentelemetry-javaagent.jar:ro
     depends_on:
