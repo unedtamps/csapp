@@ -34,7 +34,7 @@ Backend service for real-time chat built with Spring Boot. Provides JWT-authenti
 ```
                 ┌─────────────────────────────────────────────────┐
                 │                   csapp (8080)                  │
-  REST clients  │  /auth /user /admin /chat (JwtAuthFilter)       │
+  REST clients  │  /auth /user /admin /chat (JwtAuthenticationFilter) │
  ───────────────▶  PostgreSQL: users, user_details, refresh_tokens│
                 │  MongoDB:    message_history                    │
                 └───────┬─────────────────────────────────────────┘
@@ -45,9 +45,9 @@ Backend service for real-time chat built with Spring Boot. Provides JWT-authenti
                         └────────────────────────────┘
 ```
 
-- REST calls are secured by `JwtAuthFilter`; WebSocket auth happens at the STOMP `CONNECT` frame via `StompAuthInterceptor` (bearer token in `Authorization` header).
-- Inbound messages land on `/app/chat.private` (`ChatController`) and are relayed by `ChatService` to `/queue/messages.{recipientEmail}`.
-- `ChatService` publishes an in-process `MessageSentEvent`; `MessageHistoryListener` (async, `@WithSpan`) persists it to MongoDB. RabbitMQ is used only as the STOMP broker relay, not as a message-history queue.
+- REST calls are secured by `JwtAuthenticationFilter`; WebSocket auth happens at the STOMP `CONNECT` frame via `StompAuthenticationInterceptor` (bearer token in `Authorization` header).
+- Inbound messages land on `/app/chat.private` (`PrivateMessageController`) and are relayed by `PrivateMessageService` to `/queue/messages.{recipientEmail}`.
+- `PrivateMessageService` publishes an in-process `MessageSentEvent`; `MessageHistoryEventListener` (async, `@WithSpan`) persists it to MongoDB. RabbitMQ is used only as the STOMP broker relay, not as a message-history queue.
 - Conversation ids are canonical, order-independent joins of the two participants' emails (sorted + `_`).
 
 ## Getting Started
@@ -87,7 +87,7 @@ docker compose up -d postgres mongodb rabbitmq mongo-express jaeger otel-collect
 ./mvnw spring-boot:run
 ```
 
-Default profile is `dev` (`server.port=8080`). On first boot `DataDevSeeder` creates a dev admin:
+Default profile is `dev` (`server.port=8080`). On first boot `DevelopmentAdminSeeder` creates a dev admin:
 
 - email `admin@example.com` / password `password`
 
@@ -201,19 +201,20 @@ docker compose up --build csapp
 
 ```
 src/main/java/com/mycomp/csapp
-├── CSApp.java                       # @SpringBootApplication + @EnableAsync
-├── accounts                         # auth, users, roles, refresh tokens (PostgreSQL)
-│   ├── controller/ dto/ middleware/ models/ repository/ service/
-├── chats                            # STOMP messaging + history (MongoDB)
-│   ├── controller/ dto/ middleware/ models/ repository/ service/ util/
-├── config
-│   ├── admin/                       # seeded admin accounts from SPRING_SECURITY_ADMINS
-│   ├── doc/                         # OpenAPI bean
-│   ├── secrets/                     # Infisical EnvironmentPostProcessor
-│   ├── security/                    # RestSecurityConfig, JwtConfig, CorsConfig
-│   └── websocket/                   # STOMP relay + auth interceptor
-├── exceptions/                      # BaseException, GlobalExceptionHandler, SecurityErrorHandler
-└── seeder/                          # DataSeeder (prod), DataDevSeeder (non-prod)
+├── CsAppApplication.java             # @SpringBootApplication + @EnableAsync
+├── accounts                          # auth, users, roles, refresh tokens (PostgreSQL)
+│   ├── api/                          # auth, user, and admin REST controllers + DTOs
+│   ├── application/                  # AuthenticationService, UserAccountService
+│   ├── auth/                         # JWT, servlet, principal, and WebSocket auth
+│   ├── domain/                       # account roles and domain values
+│   └── persistence/jpa/              # account entities and repositories
+├── chats                             # STOMP messaging + history (MongoDB)
+│   ├── domain/                       # conversation identity
+│   ├── history/                      # history API, application, events, listener, MongoDB
+│   └── messaging/                    # private-message API, application, and payload
+├── config                            # web, security, WebSocket, and documentation config
+├── bootstrap                         # admin seeders/properties and Infisical integration
+└── shared                            # application errors and REST error responses
 src/main/resources
 ├── application*.properties          # base / prod / staging
 ├── db/migrations/                   # Flyway: V1 users, V2 refresh_tokens
@@ -222,5 +223,5 @@ src/main/resources
 
 ## Notes
 
-- WebSocket authentication happens on the STOMP `CONNECT` frame; `JwtHandshakeHandler` / `JwtValidationInterceptor` (query-param token) are defined but not wired.
+- WebSocket authentication happens on the STOMP `CONNECT` frame; `QueryTokenHandshakeHandler` / `QueryTokenHandshakeInterceptor` (query-param token) are defined but not wired.
 - `ddl-auto=validate` + Flyway manage the PostgreSQL schema; MongoDB collections are managed by Spring Data (compound index on conversation + timestamp).

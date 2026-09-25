@@ -1,2 +1,2 @@
 org.springframework.boot.EnvironmentPostProcessor=\
-com.mycomp.csapp.config.secrets.InfisicalSecretsEnvironmentPostProcessor
+com.mycomp.csapp.bootstrap.secrets.InfisicalSecretsEnvironmentPostProcessor
